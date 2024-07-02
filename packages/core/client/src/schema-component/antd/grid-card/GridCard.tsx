@@ -12,15 +12,15 @@ import { ArrayField } from '@formily/core';
 import { RecursionField, Schema, useField, useFieldSchema } from '@formily/react';
 import { List as AntdList, Col, PaginationProps } from 'antd';
 import React, { useCallback, useState } from 'react';
+import { withDynamicSchemaProps } from '../../../hoc/withDynamicSchemaProps';
 import { SortableItem } from '../../common';
 import { SchemaComponentOptions } from '../../core';
 import { useDesigner, useProps } from '../../hooks';
 import { GridCardBlockProvider, useGridCardBlockContext, useGridCardItemProps } from './GridCard.Decorator';
 import { GridCardDesigner } from './GridCard.Designer';
 import { GridCardItem } from './GridCard.Item';
-import { useGridCardActionBarProps } from './hooks';
+import { useGridCardActionBarProps, useGridCardBodyHeight } from './hooks';
 import { defaultColumnCount, pageSizeOptions } from './options';
-import { withDynamicSchemaProps } from '../../../application/hoc/withDynamicSchemaProps';
 
 const rowGutter = {
   md: 12,
@@ -88,6 +88,7 @@ const InternalGridCard = (props: GridCardProps) => {
   const fieldSchema = useFieldSchema();
   const field = useField<ArrayField>();
   const Designer = useDesigner();
+  const height = useGridCardBodyHeight();
   const [schemaMap] = useState(new Map());
   const getSchema = useCallback(
     (key) => {
@@ -127,7 +128,22 @@ const InternalGridCard = (props: GridCardProps) => {
         useGridCardActionBarProps,
       }}
     >
-      <SortableItem className={cx('nb-card-list', designerCss)}>
+      <SortableItem
+        className={cx(
+          'nb-card-list',
+          designerCss,
+          css`
+            .ant-spin-nested-loading {
+              height: ${height ? height + `px` : '100%'};
+              overflow-y: ${height ? 'auto' : null};
+              overflow-x: clip;
+              .nb-action-bar {
+                margin-top: 0px !important;
+              }
+            }
+          `,
+        )}
+      >
         <AntdList
           pagination={
             !meta || meta.count <= meta.pageSize

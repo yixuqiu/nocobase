@@ -11,18 +11,16 @@ import { createForm } from '@formily/core';
 import { Schema, useField } from '@formily/react';
 import { Spin } from 'antd';
 import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
-import { withDynamicSchemaProps } from '../application/hoc/withDynamicSchemaProps';
-import { useCollection_deprecated } from '../collection-manager';
 import {
   CollectionRecord,
   useCollectionManager,
   useCollectionParentRecordData,
   useCollectionRecord,
 } from '../data-source';
+import { withDynamicSchemaProps } from '../hoc/withDynamicSchemaProps';
 import { useTreeParentRecord } from '../modules/blocks/data-blocks/table/TreeRecordProvider';
-import { RecordProvider, useRecord } from '../record-provider';
-import { useActionContext, useDesignable } from '../schema-component';
-import { Templates as DataTemplateSelect } from '../schema-component/antd/form-v2/Templates';
+import { RecordProvider } from '../record-provider';
+import { useActionContext } from '../schema-component';
 import { BlockProvider, useBlockRequestContext } from './BlockProvider';
 import { TemplateBlockProvider } from './TemplateBlockProvider';
 import { FormActiveFieldsProvider } from './hooks/useFormActiveFields';
@@ -96,9 +94,7 @@ const InternalFormBlockProvider = (props) => {
   return (
     <FormBlockContext.Provider value={formBlockValue}>
       <RecordProvider isNew={record?.isNew} parent={record?.parentRecord?.data} record={record?.data}>
-        <div ref={formBlockRef}>
-          <RenderChildrenWithDataTemplates form={form}>{props.children}</RenderChildrenWithDataTemplates>
-        </div>
+        <div ref={formBlockRef}>{props.children}</div>
       </RecordProvider>
     </FormBlockContext.Provider>
   );
@@ -125,27 +121,8 @@ export const useIsDetailBlock = () => {
 };
 
 export const FormBlockProvider = withDynamicSchemaProps((props) => {
-  const record = useRecord();
   const parentRecordData = useCollectionParentRecordData();
-  const { collection, isCusomeizeCreate, parentRecord } = props;
-  const { __collection } = record;
-  const currentCollection = useCollection_deprecated();
-  const { designable } = useDesignable();
-  const isDetailBlock = useIsDetailBlock();
-  let detailFlag = false;
-  if (isDetailBlock) {
-    detailFlag = true;
-    if (!designable && __collection) {
-      detailFlag = __collection === collection;
-    }
-  }
-  const createFlag =
-    (currentCollection.name === (collection?.name || collection) && !isDetailBlock) ||
-    !currentCollection.name ||
-    !collection;
-  if (!detailFlag && !createFlag && !isCusomeizeCreate) {
-    return null;
-  }
+  const { parentRecord } = props;
 
   return (
     <TemplateBlockProvider>
@@ -196,15 +173,6 @@ export const useFormBlockProps = () => {
   return {
     form: ctx.form,
   };
-};
-
-const RenderChildrenWithDataTemplates = ({ form, children }) => {
-  return (
-    <>
-      <DataTemplateSelect style={{ marginBottom: 18 }} form={form} />
-      {children}
-    </>
-  );
 };
 
 /**

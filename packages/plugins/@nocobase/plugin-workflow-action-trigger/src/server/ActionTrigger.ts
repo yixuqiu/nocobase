@@ -24,9 +24,12 @@ export default class extends Trigger {
   constructor(workflow: WorkflowPlugin) {
     super(workflow);
 
-    workflow.app.use(this.middleware, { after: 'dataSource' });
+    workflow.app.dataSourceManager.use(this.middleware);
   }
 
+  /**
+   * @deprecated
+   */
   async workflowTriggerAction(context: Context, next: Next) {
     const { triggerWorkflows } = context.action.params;
 

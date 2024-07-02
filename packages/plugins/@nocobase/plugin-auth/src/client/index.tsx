@@ -17,6 +17,7 @@ import { Options, SignInForm, SignUpForm } from './basic';
 import { NAMESPACE } from './locale';
 import { AuthLayout, SignInPage, SignUpPage } from './pages';
 import { Authenticator } from './settings/Authenticator';
+export { AuthenticatorsContextProvider, AuthLayout } from './pages/AuthLayout';
 
 export type AuthOptions = {
   components: Partial<{

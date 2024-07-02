@@ -50,7 +50,6 @@ export const SubTable: any = observer(
     const compile = useCompile();
     const labelUiSchema = useLabelUiSchema(collectionField, fieldNames?.label || 'label');
     const recordV2 = useCollectionRecord();
-
     const move = (fromIndex: number, toIndex: number) => {
       if (toIndex === undefined) return;
       if (!isArr(field.value)) return;
@@ -99,20 +98,19 @@ export const SubTable: any = observer(
     };
     const usePickActionProps = () => {
       const { setVisible } = useActionContext();
-      const { selectedRows, options, collectionField } = useContext(RecordPickerContext);
+      const { selectedRows, setSelectedRows } = useContext(RecordPickerContext);
       return {
         onClick() {
-          const selectData = unionBy(selectedRows, options, collectionField?.targetKey || 'id');
-          const data = field.value || [];
-          field.value = uniqBy(data.concat(selectData), collectionField?.targetKey || 'id');
+          selectedRows.map((v) => field.value.push(v));
           field.onInput(field.value);
+          setSelectedRows([]);
           setVisible(false);
         },
       };
     };
     const getFilter = () => {
       const targetKey = collectionField?.targetKey || 'id';
-      const list = options.map((option) => option[targetKey]).filter(Boolean);
+      const list = (field.value || []).map((option) => option[targetKey]).filter(Boolean);
       const filter = list.length ? { $and: [{ [`${targetKey}.$ne`]: list }] } : {};
       return filter;
     };
@@ -165,7 +163,7 @@ export const SubTable: any = observer(
                 size={'small'}
                 field={field}
                 showIndex
-                dragSort={field.editable}
+                dragSort={false}
                 showDel={field.editable}
                 pagination={false}
                 rowSelection={{ type: 'none', hideSelectAll: true }}

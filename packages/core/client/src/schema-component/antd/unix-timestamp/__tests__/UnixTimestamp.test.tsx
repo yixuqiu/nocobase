@@ -7,13 +7,16 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import { screen, renderApp, userEvent, waitFor, renderReadPrettyApp } from '@nocobase/test/client';
+import { screen, renderAppOptions, userEvent, waitFor, renderReadPrettyApp } from '@nocobase/test/client';
 import { UnixTimestamp } from '@nocobase/client';
 
 describe('UnixTimestamp', () => {
   it('renders without errors', async () => {
-    const { container } = await renderApp({
+    const { container } = await renderAppOptions({
       Component: UnixTimestamp,
+      props: {
+        accuracy: 'millisecond',
+      },
       value: 0,
     });
     expect(container).toMatchInlineSnapshot(`
@@ -67,9 +70,12 @@ describe('UnixTimestamp', () => {
   });
 
   it('millisecond', async () => {
-    await renderApp({
+    await renderAppOptions({
       Component: UnixTimestamp,
       value: 1712819630000,
+      props: {
+        accuracy: 'millisecond',
+      },
     });
     await waitFor(() => {
       expect(screen.getByRole('textbox')).toHaveValue('2024-04-11');
@@ -77,7 +83,7 @@ describe('UnixTimestamp', () => {
   });
 
   it('second', async () => {
-    await renderApp({
+    await renderAppOptions({
       Component: UnixTimestamp,
       value: 1712819630,
       props: {
@@ -91,9 +97,12 @@ describe('UnixTimestamp', () => {
   });
 
   it('string', async () => {
-    await renderApp({
+    await renderAppOptions({
       Component: UnixTimestamp,
       value: '2024-04-11',
+      props: {
+        accuracy: 'millisecond',
+      },
     });
 
     await waitFor(() => {
@@ -103,10 +112,13 @@ describe('UnixTimestamp', () => {
 
   it('change', async () => {
     const onChange = vitest.fn();
-    await renderApp({
+    await renderAppOptions({
       Component: UnixTimestamp,
       value: '2024-04-11',
       onChange,
+      props: {
+        accuracy: 'millisecond',
+      },
     });
     await userEvent.click(screen.getByRole('textbox'));
 
@@ -126,6 +138,9 @@ describe('UnixTimestamp', () => {
     const { container } = await renderReadPrettyApp({
       Component: UnixTimestamp,
       value: '2024-04-11',
+      props: {
+        accuracy: 'millisecond',
+      },
     });
 
     expect(screen.getByText('2024-04-11')).toBeInTheDocument();

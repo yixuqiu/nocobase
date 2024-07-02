@@ -12,10 +12,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   useACLRoleContext,
   useCollection_deprecated,
-  BlockProvider,
   useBlockRequestContext,
   TableBlockProvider,
   useTableBlockContext,
+  getLabelFormatValue,
+  useCollection,
 } from '@nocobase/client';
 import _ from 'lodash';
 export const GanttBlockContext = createContext<any>({});
@@ -29,15 +30,18 @@ const formatData = (
   hideChildren = false,
   checkPermassion?: (any) => boolean,
   primaryKey?: string,
+  labelUiSchema?: any,
 ) => {
   data.forEach((item: any) => {
     const disable = checkPermassion(item);
     const percent = parseFloat((item[fieldNames.progress] * 100).toFixed(2));
+    const title = getLabelFormatValue(labelUiSchema, item[fieldNames.title]);
+
     if (item.children && item.children.length) {
       tasks.push({
         start: new Date(item[fieldNames.start] ?? undefined),
         end: new Date(item[fieldNames.end] ?? undefined),
-        name: item[fieldNames.title],
+        name: title,
         id: item[primaryKey] + '',
         type: 'project',
         progress: percent > 100 ? 100 : percent || 0,
@@ -46,12 +50,21 @@ const formatData = (
         color: item.color,
         isDisabled: disable,
       });
-      formatData(item.children, fieldNames, tasks, item.id + '', hideChildren, checkPermassion, primaryKey);
+      formatData(
+        item.children,
+        fieldNames,
+        tasks,
+        item.id + '',
+        hideChildren,
+        checkPermassion,
+        primaryKey,
+        labelUiSchema,
+      );
     } else {
       tasks.push({
         start: item[fieldNames.start] ? new Date(item[fieldNames.start]) : undefined,
         end: new Date(item[fieldNames.end] || item[fieldNames.start]),
-        name: item[fieldNames.title],
+        name: title,
         id: item[primaryKey] + '',
         type: fieldNames.end ? 'task' : 'milestone',
         progress: percent > 100 ? 100 : percent || 0,
@@ -86,7 +99,7 @@ const InternalGanttBlockProvider = (props) => {
 };
 
 export const GanttBlockProvider = (props) => {
-  const params = { filter: props.params.filter, paginate: false, sort: ['id'] };
+  const params = { filter: props.params?.filter, paginate: false, sort: ['id'] };
   const collection = useCollection_deprecated();
 
   if (collection?.tree) {
@@ -95,11 +108,9 @@ export const GanttBlockProvider = (props) => {
 
   return (
     <div aria-label="block-item-gantt" role="button">
-      <BlockProvider name="gantt" {...props} params={params}>
-        <TableBlockProvider {...props} params={params}>
-          <InternalGanttBlockProvider {...props} />
-        </TableBlockProvider>
-      </BlockProvider>
+      <TableBlockProvider {...props} params={params}>
+        <InternalGanttBlockProvider {...props} />
+      </TableBlockProvider>
     </div>
   );
 };
@@ -110,12 +121,15 @@ export const useGanttBlockContext = () => {
 
 export const useGanttBlockProps = () => {
   const ctx = useGanttBlockContext();
+  const { fieldNames } = ctx;
   const [tasks, setTasks] = useState<any>([]);
   const { getPrimaryKey, name, template, writableView } = useCollection_deprecated();
   const { parseAction } = useACLRoleContext();
   const ctxBlock = useTableBlockContext();
-
+  const [loading, setLoading] = useState(false);
   const primaryKey = getPrimaryKey();
+  const { fields } = useCollection();
+  const labelUiSchema = fields.find((v) => v.name === fieldNames?.title)?.uiSchema;
   const checkPermission = (record) => {
     const actionPath = `${name}:update`;
     const schema = {};
@@ -131,11 +145,21 @@ export const useGanttBlockProps = () => {
     ctx.field.data = tasksData;
   };
   const expandAndCollapseAll = (flag) => {
-    const data = formatData(ctx.service.data?.data, ctx.fieldNames, [], undefined, flag, checkPermission, primaryKey);
+    const data = formatData(
+      ctx.service.data?.data,
+      ctx.fieldNames,
+      [],
+      undefined,
+      flag,
+      checkPermission,
+      primaryKey,
+      labelUiSchema,
+    );
     setTasks(data);
     ctx.field.data = data;
   };
   useEffect(() => {
+    setLoading(true);
     if (!ctx?.service?.loading) {
       const data = formatData(
         ctx.service.data?.data,
@@ -145,8 +169,10 @@ export const useGanttBlockProps = () => {
         false,
         checkPermission,
         primaryKey,
+        labelUiSchema,
       );
       setTasks(data);
+      setLoading(false);
       ctx.field.data = data;
       if (tasks.length > 0) {
         ctxBlock.setExpandFlag(true);
@@ -159,5 +185,6 @@ export const useGanttBlockProps = () => {
     onExpanderClick,
     expandAndCollapseAll,
     tasks,
+    loading,
   };
 };

@@ -20,8 +20,8 @@ import {
   useCollection,
   useCollectionManager,
   useDataSourceKey,
-  useFormBlockContext,
 } from '../';
+import { useFormBlockContext } from '../block-provider/FormBlockProvider';
 import { useFormActiveFields } from '../block-provider/hooks/useFormActiveFields';
 import { FieldOptions, useCollectionManager_deprecated, useCollection_deprecated } from '../collection-manager';
 import { Collection, CollectionFieldOptions } from '../data-source/collection/Collection';
@@ -42,7 +42,7 @@ export const gridRowColWrap = (schema: ISchema) => {
         type: 'void',
         'x-component': 'Grid.Col',
         properties: {
-          [schema.name || uid()]: schema,
+          [schema?.name || uid()]: schema,
         },
       },
     },
@@ -104,7 +104,7 @@ const quickEditField = [
   'lineString',
 ];
 
-export const useTableColumnInitializerFields = () => {
+export function useTableColumnInitializerFields() {
   const { name, currentFields = [] } = useCollection_deprecated();
   const { getInterface, getCollection } = useCollectionManager_deprecated();
   const fieldSchema = useFieldSchema();
@@ -113,9 +113,7 @@ export const useTableColumnInitializerFields = () => {
   const isReadPretty = isSubTable ? form.readPretty : true;
 
   return currentFields
-    .filter(
-      (field) => field?.interface && field?.interface !== 'subTable' && !field?.isForeignKey && !field?.treeChildren,
-    )
+    .filter((field) => field?.interface && field?.interface !== 'subTable' && !field?.treeChildren)
     .map((field) => {
       const interfaceConfig = getInterface(field.interface);
       const isFileCollection = field?.target && getCollection(field?.target)?.template === 'file';
@@ -167,9 +165,9 @@ export const useTableColumnInitializerFields = () => {
         schema,
       } as SchemaInitializerItemType;
     });
-};
+}
 
-export const useAssociatedTableColumnInitializerFields = () => {
+export function useAssociatedTableColumnInitializerFields() {
   const { name, fields } = useCollection_deprecated();
   const { getInterface, getCollectionFields, getCollection } = useCollectionManager_deprecated();
   const groups = fields
@@ -189,7 +187,6 @@ export const useAssociatedTableColumnInitializerFields = () => {
             // type: 'string',
             name: `${field.name}.${subField.name}`,
             // title: subField?.uiSchema?.title || subField.name,
-
             'x-component': 'CollectionField',
             'x-read-pretty': true,
             'x-collection-field': `${name}.${field.name}.${subField.name}`,
@@ -224,9 +221,9 @@ export const useAssociatedTableColumnInitializerFields = () => {
     });
 
   return groups;
-};
+}
 
-export const useInheritsTableColumnInitializerFields = () => {
+export function useInheritsTableColumnInitializerFields() {
   const { name } = useCollection_deprecated();
   const { getInterface, getInheritCollections, getCollection, getParentCollectionFields } =
     useCollectionManager_deprecated();
@@ -291,7 +288,7 @@ export const useInheritsTableColumnInitializerFields = () => {
         }),
     };
   });
-};
+}
 
 export const useFormItemInitializerFields = (options?: any) => {
   const { name, currentFields } = useCollection_deprecated();
@@ -302,7 +299,7 @@ export const useFormItemInitializerFields = (options?: any) => {
   const action = fieldSchema?.['x-action'];
 
   return currentFields
-    ?.filter((field) => field?.interface && !field?.isForeignKey && !field?.treeChildren)
+    ?.filter((field) => field?.interface && !field?.treeChildren)
     ?.map((field) => {
       const interfaceConfig = getInterface(field.interface);
       const targetCollection = getCollection(field.target);
@@ -369,7 +366,7 @@ export const useFilterFormItemInitializerFields = (options?: any) => {
   const action = fieldSchema?.['x-action'];
 
   return currentFields
-    ?.filter((field) => field?.interface && !field?.isForeignKey && getInterface(field.interface)?.filterable)
+    ?.filter((field) => field?.interface && getInterface(field.interface)?.filterable)
     ?.map((field) => {
       const interfaceConfig = getInterface(field.interface);
       const targetCollection = getCollection(field.target);
@@ -382,6 +379,7 @@ export const useFilterFormItemInitializerFields = (options?: any) => {
         'x-settings': 'fieldSettings:FilterFormItem',
         'x-component': 'CollectionField',
         'x-decorator': 'FormItem',
+        'x-use-decorator-props': 'useFormItemProps',
         'x-collection-field': `${name}.${field.name}`,
         'x-component-props': {},
       };
@@ -395,6 +393,7 @@ export const useFilterFormItemInitializerFields = (options?: any) => {
           'x-settings': 'fieldSettings:FilterFormItem',
           'x-component': 'CollectionField',
           'x-decorator': 'FormItem',
+          'x-use-decorator-props': 'useFormItemProps',
           'x-collection-field': `${name}.${field.name}`,
           'x-component-props': field.uiSchema?.['x-component-props'],
         };
@@ -570,7 +569,7 @@ export const useInheritsFormItemInitializerFields = (options?) => {
     const targetCollection = getCollection(v);
     return {
       [targetCollection?.title]: fields
-        ?.filter((field) => field?.interface && !field?.isForeignKey)
+        ?.filter((field) => field?.interface)
         ?.map((field) => {
           const interfaceConfig = getInterface(field.interface);
           const targetCollection = getCollection(field.target);
@@ -627,7 +626,7 @@ export const useFilterInheritsFormItemInitializerFields = (options?) => {
     const targetCollection = getCollection(v);
     return {
       [targetCollection.title]: fields
-        ?.filter((field) => field?.interface && !field?.isForeignKey && getInterface(field.interface)?.filterable)
+        ?.filter((field) => field?.interface && getInterface(field.interface)?.filterable)
         ?.map((field) => {
           const interfaceConfig = getInterface(field.interface);
           const targetCollection = getCollection(field.target);
@@ -677,12 +676,7 @@ export const useCustomFormItemInitializerFields = (options?: any) => {
   const remove = useRemoveGridFormItem();
   return currentFields
     ?.filter((field) => {
-      return (
-        field?.interface &&
-        !field?.uiSchema?.['x-read-pretty'] &&
-        field.interface !== 'snapshot' &&
-        field.type !== 'sequence'
-      );
+      return field?.interface && field.interface !== 'snapshot' && field.type !== 'sequence';
     })
     ?.map((field) => {
       const interfaceConfig = getInterface(field.interface);
@@ -722,7 +716,7 @@ const findSchema = (schema: Schema, key: string, action: string) => {
     if (s[key] === action) {
       return s;
     }
-    if (s['x-component'] !== 'Action.Container' && s['x-component'] !== 'AssociationField.Viewer') {
+    if (s['x-component'] !== 'Action.Container' && !s['x-component'].includes('AssociationField')) {
       const c = findSchema(s, key, action);
       if (c) {
         return c;
@@ -857,6 +851,8 @@ export const useCollectionDataSourceItems = ({
   hideOtherRecordsInPopup,
   onClick,
   filterOtherRecordsCollection,
+  currentText,
+  otherText,
 }: {
   componentName;
   filter?: (options: { collection?: Collection; associationField?: CollectionFieldOptions }) => boolean;
@@ -873,6 +869,8 @@ export const useCollectionDataSourceItems = ({
    * 用来筛选弹窗中的 “Other records” 选项中的数据表
    */
   filterOtherRecordsCollection?: (collection: Collection) => boolean;
+  currentText?: string;
+  otherText?: string;
 }) => {
   const { t } = useTranslation();
   const dm = useDataSourceManager();
@@ -932,7 +930,7 @@ export const useCollectionDataSourceItems = ({
         componentProps: {
           ...dataBlockInitializerProps,
           icon: null,
-          title: t('Current record'),
+          title: currentText || t('Current record'),
           name: 'currentRecord',
           hideSearch: false,
           hideChildrenIfSingleCollection: true,
@@ -969,13 +967,14 @@ export const useCollectionDataSourceItems = ({
         // 目的是使点击无效
         onClick() {},
         componentProps: {
+          ...dataBlockInitializerProps,
           icon: null,
-          title: t('Other records'),
+          title: otherText || t('Other records'),
           name: 'otherRecords',
           showAssociationFields: false,
           onlyCurrentDataSource: false,
           hideChildrenIfSingleCollection: false,
-          onCreateBlockSchema: dataBlockInitializerProps.onCreateBlockSchema,
+          fromOthersInPopup: true,
           componentType: componentTypeMap[componentName] || componentName,
           filter({ collection, associationField }) {
             if (filterOtherRecordsCollection) {
@@ -1031,6 +1030,7 @@ export const useCollectionDataSourceItems = ({
       collection.name,
       componentName,
       dataBlockInitializerProps,
+      filterOtherRecordsCollection,
       hideOtherRecordsInPopup,
       noAssociationMenu,
       onClick,

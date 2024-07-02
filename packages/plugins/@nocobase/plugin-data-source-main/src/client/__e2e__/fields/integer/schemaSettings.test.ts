@@ -64,7 +64,7 @@ test.describe('form item & create form', () => {
             .hover();
         })(page, 'integer'),
       supportedVariables: ['Constant', 'Current user', 'Current role', 'Date variables', 'Current form'],
-      unsupportedVariables: ['Current popup record'],
+      unsupportedVariables: ['Current popup record', 'Parent popup record'],
       variableValue: ['Current user', 'ID'], // 值为 1
       inputConstantValue: async () => {
         await page.getByLabel('block-item-VariableInput-').getByRole('spinbutton').click();
@@ -125,7 +125,7 @@ test.describe('form item & create form', () => {
           page.getByLabel('block-item-CollectionField-general-form-general.integer-integer').getByRole('spinbutton'),
         ).not.toBeVisible();
         await expect(page.getByLabel('block-item-CollectionField-general-form-general.integer-integer')).toHaveText(
-          'integer:112233',
+          'integer:112,233',
         );
       },
     });
@@ -223,7 +223,7 @@ test.describe('form item & edit form', () => {
           page.getByLabel('block-item-CollectionField-general-form-general.integer-integer').getByRole('spinbutton'),
         ).not.toBeVisible();
         await expect(page.getByLabel('block-item-CollectionField-general-form-general.integer-integer')).toHaveText(
-          `integer:${record.integer}`,
+          `integer:${record.integer.toLocaleString()}`,
         );
       },
     });

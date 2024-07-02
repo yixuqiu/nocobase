@@ -1,17 +1,8 @@
-/**
- * This file is part of the NocoBase (R) project.
- * Copyright (c) 2020-2024 NocoBase Co., Ltd.
- * Authors: NocoBase Team.
- *
- * This project is dual-licensed under AGPL-3.0 and NocoBase Commercial License.
- * For more information, please refer to: https://www.nocobase.com/agreement.
- */
-
 import { BlockSchemaComponentPlugin, VariablesProvider } from '@nocobase/client';
-import { renderApp } from '@nocobase/test/client';
+import { renderAppOptions } from '@nocobase/test/client';
 
 export const renderDemo9 = () =>
-  renderApp({
+  renderAppOptions({
     designable: true,
     schema: {
       _isJSONSchemaObject: true,

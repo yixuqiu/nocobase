@@ -9,7 +9,7 @@
 
 import Icon, { TableOutlined } from '@ant-design/icons';
 import { Divider, Empty, Input, MenuProps, Spin } from 'antd';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   SchemaInitializerItem,
@@ -301,9 +301,14 @@ export interface DataBlockInitializerProps {
    */
   hideOtherRecordsInPopup?: boolean;
   onClick?: (args: any) => void;
+  /** 用于更改 Current record 的文案 */
+  currentText?: string;
+  /** 用于更改 Other records 的文案 */
+  otherText?: string;
+  children?: React.ReactNode;
 }
 
-export const DataBlockInitializer = (props: DataBlockInitializerProps) => {
+export const DataBlockInitializer: FC<DataBlockInitializerProps> = (props) => {
   const {
     templateWrap,
     onCreateBlockSchema,
@@ -321,6 +326,8 @@ export const DataBlockInitializer = (props: DataBlockInitializerProps) => {
     hideOtherRecordsInPopup,
     onClick: propsOnClick,
     filterOtherRecordsCollection,
+    currentText,
+    otherText,
   } = props;
   const { insert, setVisible } = useSchemaInitializer();
   const compile = useCompile();
@@ -341,9 +348,10 @@ export const DataBlockInitializer = (props: DataBlockInitializerProps) => {
           onCreateBlockSchema({ item, fromOthersInPopup });
         }
       }
+
       setVisible(false);
     },
-    [getTemplateSchemaByMode, insert, onCreateBlockSchema, propsOnClick, setVisible, templateWrap],
+    [getTemplateSchemaByMode, insert, setVisible, onCreateBlockSchema, propsOnClick, templateWrap],
   );
   const items =
     itemsFromProps ||
@@ -358,6 +366,8 @@ export const DataBlockInitializer = (props: DataBlockInitializerProps) => {
       dataBlockInitializerProps: props,
       hideOtherRecordsInPopup,
       onClick,
+      currentText,
+      otherText,
     });
   const getMenuItems = useGetSchemaInitializerMenuItems(onClick);
   const childItems = useMemo(() => {

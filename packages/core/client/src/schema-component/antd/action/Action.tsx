@@ -13,20 +13,16 @@ import { App, Button } from 'antd';
 import classnames from 'classnames';
 import { default as lodash } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { useTranslation } from 'react-i18next';
-import { StablePopover, useActionContext } from '../..';
+import { ErrorFallback, StablePopover, useActionContext } from '../..';
 import { useDesignable } from '../../';
 import { useACLActionParamsContext } from '../../../acl';
-import { withDynamicSchemaProps } from '../../../application/hoc/withDynamicSchemaProps';
-import {
-  useCollection,
-  useCollectionParentRecordData,
-  useCollectionRecordData,
-  useDataBlockRequest,
-} from '../../../data-source';
+import { useCollectionParentRecordData, useCollectionRecordData, useDataBlockRequest } from '../../../data-source';
+import { withDynamicSchemaProps } from '../../../hoc/withDynamicSchemaProps';
 import { Icon } from '../../../icon';
 import { TreeRecordProvider } from '../../../modules/blocks/data-blocks/table/TreeRecordProvider';
-import { DeclareVariable } from '../../../modules/variable/DeclareVariable';
+import { VariablePopupRecordProvider } from '../../../modules/variable/variablesProvider/VariablePopupRecordProvider';
 import { RecordProvider } from '../../../record-provider';
 import { useLocalVariables, useVariables } from '../../../variables';
 import { SortableItem } from '../../common';
@@ -44,6 +40,8 @@ import { useA } from './hooks';
 import { useGetAriaLabelOfAction } from './hooks/useGetAriaLabelOfAction';
 import { ActionProps, ComposedAction } from './types';
 import { linkageAction, setInitialActionState } from './utils';
+
+const handleError = (err) => console.log(err);
 
 export const Action: ComposedAction = withDynamicSchemaProps(
   observer((props: ActionProps) => {
@@ -66,6 +64,7 @@ export const Action: ComposedAction = withDynamicSchemaProps(
       /** 如果为 true 则说明该按钮是树表格的 Add child 按钮 */
       addChild,
       onMouseEnter,
+      refreshDataBlockRequest: propsRefreshDataBlockRequest,
       ...others
     } = useProps(props); // 新版 UISchema（1.0 之后）中已经废弃了 useProps，这里之所以继续保留是为了兼容旧版的 UISchema
     const aclCtx = useACLActionParamsContext();
@@ -75,19 +74,18 @@ export const Action: ComposedAction = withDynamicSchemaProps(
     const [formValueChanged, setFormValueChanged] = useState(false);
     const Designer = useDesigner();
     const field = useField<any>();
-    const { run, element } = useAction(actionCallback);
+    const { run, element, disabled: disableAction } = useAction(actionCallback);
     const fieldSchema = useFieldSchema();
     const compile = useCompile();
     const form = useForm();
     const recordData = useCollectionRecordData();
     const parentRecordData = useCollectionParentRecordData();
-    const collection = useCollection();
-    const designerProps = fieldSchema['x-designer-props'];
+    const designerProps = fieldSchema['x-toolbar-props'] || fieldSchema['x-designer-props'];
     const openMode = fieldSchema?.['x-component-props']?.['openMode'];
     const openSize = fieldSchema?.['x-component-props']?.['openSize'];
     const refreshDataBlockRequest = fieldSchema?.['x-component-props']?.['refreshDataBlockRequest'];
 
-    const disabled = form.disabled || field.disabled || field.data?.disabled || propsDisabled;
+    const disabled = form.disabled || field.disabled || field.data?.disabled || propsDisabled || disableAction;
     const linkageRules = useMemo(() => fieldSchema?.['x-linkage-rules'] || [], [fieldSchema?.['x-linkage-rules']]);
     const { designable } = useDesignable();
     const tarComponent = useComponent(component) || component;
@@ -123,8 +121,8 @@ export const Action: ComposedAction = withDynamicSchemaProps(
     }, [field, linkageRules, localVariables, variables]);
 
     const handleButtonClick = useCallback(
-      (e: React.MouseEvent) => {
-        if (isPortalInBody(e.target as Element)) {
+      (e: React.MouseEvent, checkPortal = true) => {
+        if (checkPortal && isPortalInBody(e.target as Element)) {
           return;
         }
         e.preventDefault();
@@ -182,7 +180,7 @@ export const Action: ComposedAction = withDynamicSchemaProps(
           {...others}
           onMouseEnter={handleMouseEnter}
           loading={field?.data?.loading || loading}
-          icon={icon ? <Icon type={icon} /> : null}
+          icon={typeof icon === 'string' ? <Icon type={icon} /> : icon}
           disabled={disabled}
           style={buttonStyle}
           onClick={handleButtonClick}
@@ -216,14 +214,7 @@ export const Action: ComposedAction = withDynamicSchemaProps(
       >
         {popover && <RecursionField basePath={field.address} onlyRenderProperties schema={fieldSchema} />}
         {!popover && renderButton()}
-        <DeclareVariable
-          name="$nPopupRecord"
-          title={t('Current popup record')}
-          value={recordData}
-          collection={collection}
-        >
-          {!popover && props.children}
-        </DeclareVariable>
+        <VariablePopupRecordProvider>{!popover && props.children}</VariablePopupRecordProvider>
         {element}
       </ActionContextProvider>
     );
@@ -246,6 +237,11 @@ export const Action: ComposedAction = withDynamicSchemaProps(
 Action.Popover = observer(
   (props) => {
     const { button, visible, setVisible } = useActionContext();
+    const content = (
+      <ErrorBoundary FallbackComponent={ErrorFallback} onError={handleError}>
+        {props.children}
+      </ErrorBoundary>
+    );
     return (
       <StablePopover
         {...props}
@@ -254,7 +250,7 @@ Action.Popover = observer(
         onOpenChange={(visible) => {
           setVisible(visible);
         }}
-        content={props.children}
+        content={content}
       >
         {button}
       </StablePopover>

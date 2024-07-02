@@ -26,8 +26,8 @@ import { beforeCreateForValidateField, beforeUpdateForValidateField } from './ho
 import { beforeCreateForViewCollection } from './hooks/beforeCreateForViewCollection';
 import { CollectionModel, FieldModel } from './models';
 import collectionActions from './resourcers/collections';
-import sqlResourcer from './resourcers/sql';
 import viewResourcer from './resourcers/views';
+import { FieldNameExistsError } from './errors/field-name-exists-error';
 
 export class PluginDataSourceMainServer extends Plugin {
   public schema: string;
@@ -129,6 +129,30 @@ export class PluginDataSourceMainServer extends Plugin {
     this.app.db.on('fields.beforeCreate', beforeCreateForValidateField(this.app.db));
 
     this.app.db.on('fields.afterCreate', afterCreateForReverseField(this.app.db));
+
+    this.app.db.on('fields.beforeCreate', async (model: FieldModel, options) => {
+      const { transaction } = options;
+      // validate field name
+      const collectionName = model.get('collectionName');
+      const name = model.get('name');
+
+      if (!collectionName || !name) {
+        return;
+      }
+
+      const exists = await this.app.db.getRepository('fields').findOne({
+        filter: {
+          collectionName,
+          name,
+        },
+        transaction,
+      });
+
+      if (exists) {
+        throw new FieldNameExistsError(name, collectionName);
+      }
+    });
+
     this.app.db.on('fields.beforeUpdate', beforeUpdateForValidateField(this.app.db));
 
     this.app.db.on('fields.beforeUpdate', async (model, options) => {
@@ -293,11 +317,6 @@ export class PluginDataSourceMainServer extends Plugin {
       name: `pm.data-source-manager.collection-view `,
       actions: ['dbViews:*'],
     });
-
-    this.app.acl.registerSnippet({
-      name: `pm.data-source-manager.collection-sql `,
-      actions: ['sqlCollection:*'],
-    });
   }
 
   async load() {
@@ -314,6 +333,25 @@ export class PluginDataSourceMainServer extends Plugin {
       },
     );
 
+    errorHandlerPlugin.errorHandler.register(
+      (err) => err instanceof FieldNameExistsError,
+      (err, ctx) => {
+        ctx.status = 400;
+
+        ctx.body = {
+          errors: [
+            {
+              message: ctx.i18n.t('field-name-exists', {
+                name: err.value,
+                collectionName: err.collectionName,
+                ns: 'data-source-main',
+              }),
+            },
+          ],
+        };
+      },
+    );
+
     this.app.resourcer.use(async (ctx, next) => {
       if (ctx.action.resourceName === 'collections.fields' && ['create', 'update'].includes(ctx.action.actionName)) {
         ctx.action.mergeParams({
@@ -324,7 +362,6 @@ export class PluginDataSourceMainServer extends Plugin {
     });
 
     this.app.resource(viewResourcer);
-    this.app.resource(sqlResourcer);
     this.app.actions(collectionActions);
 
     const handleFieldSource = (fields) => {

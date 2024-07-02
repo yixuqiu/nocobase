@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { ActionInitializer } from '../../../schema-initializer/items/ActionInitializer';
+import { ActionInitializerItem } from '../../../schema-initializer/items/ActionInitializerItem';
 export const CreateChildInitializer = (props) => {
   const schema = {
     type: 'void',
@@ -22,7 +22,7 @@ export const CreateChildInitializer = (props) => {
       openMode: 'drawer',
       type: 'link',
       addChild: true,
-      style: { padding: '0px', marginTop: '-5px' },
+      style: { height: 'auto', lineHeight: 'normal' },
       component: 'CreateRecordAction',
     },
     properties: {
@@ -64,5 +64,5 @@ export const CreateChildInitializer = (props) => {
       },
     },
   };
-  return <ActionInitializer {...props} schema={schema} />;
+  return <ActionInitializerItem {...props} schema={schema} />;
 };

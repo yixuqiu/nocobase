@@ -60,7 +60,7 @@ const InternalKanbanBlockProvider = (props) => {
           service,
           resource,
           groupField,
-          fixedBlock: field?.decoratorProps?.fixedBlock,
+          // fixedBlock: field?.decoratorProps?.fixedBlock,
           sortField: props?.sortField,
         }}
       >
@@ -120,7 +120,7 @@ const useAssociationNames = (collection) => {
 
 export const KanbanBlockProvider = (props) => {
   const params = { ...props.params };
-  const appends = useAssociationNames(props.collection);
+  const appends = useAssociationNames(props.association || props.collection);
   if (!Object.keys(params).includes('appends')) {
     params['appends'] = appends;
   }

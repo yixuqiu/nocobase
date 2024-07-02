@@ -11,14 +11,15 @@ import { Form } from '@formily/core';
 import { ISchema, Schema } from '@formily/react';
 import { useMemo } from 'react';
 import { CollectionFieldOptions_deprecated } from '../../../collection-manager';
-import { useBlockCollection } from './useBlockCollection';
 import { useDatetimeVariable } from './useDateVariable';
 import { useCurrentFormVariable } from './useFormVariable';
 import { useCurrentObjectVariable } from './useIterationVariable';
+import { useParentPopupVariable } from './useParentPopupVariable';
 import { useCurrentParentRecordVariable } from './useParentRecordVariable';
 import { usePopupVariable } from './usePopupVariable';
 import { useCurrentRecordVariable } from './useRecordVariable';
 import { useCurrentRoleVariable } from './useRoleVariable';
+import { useURLSearchParamsVariable } from './useURLSearchParamsVariable';
 import { useCurrentUserVariable } from './useUserVariable';
 
 interface Props {
@@ -56,7 +57,6 @@ export const useVariableOptions = ({
   targetFieldSchema,
   record,
 }: Props) => {
-  const { name: blockCollectionName = record?.__collectionName } = useBlockCollection();
   const blockParentCollectionName = record?.__parent?.__collectionName;
   const { currentUserSettings } = useCurrentUserVariable({
     maxDepth: 3,
@@ -97,6 +97,12 @@ export const useVariableOptions = ({
     noDisabled,
     targetFieldSchema,
   });
+  const { settings: parentPopupRecordSettings, shouldDisplayParentPopupRecord } = useParentPopupVariable({
+    schema: uiSchema,
+    collectionField,
+    noDisabled,
+    targetFieldSchema,
+  });
   const { currentParentRecordSettings, shouldDisplayCurrentParentRecord } = useCurrentParentRecordVariable({
     schema: uiSchema,
     collectionName: blockParentCollectionName,
@@ -104,6 +110,7 @@ export const useVariableOptions = ({
     noDisabled,
     targetFieldSchema,
   });
+  const { urlSearchParamsSettings, shouldDisplay: shouldDisplayURLSearchParams } = useURLSearchParamsVariable();
 
   return useMemo(() => {
     return [
@@ -115,6 +122,8 @@ export const useVariableOptions = ({
       shouldDisplayCurrentRecord && currentRecordSettings,
       shouldDisplayCurrentParentRecord && currentParentRecordSettings,
       shouldDisplayPopupRecord && popupRecordSettings,
+      shouldDisplayParentPopupRecord && parentPopupRecordSettings,
+      shouldDisplayURLSearchParams && urlSearchParamsSettings,
     ].filter(Boolean);
   }, [
     currentUserSettings,
@@ -130,5 +139,7 @@ export const useVariableOptions = ({
     currentParentRecordSettings,
     shouldDisplayPopupRecord,
     popupRecordSettings,
+    shouldDisplayURLSearchParams,
+    urlSearchParamsSettings,
   ]);
 };

@@ -9,13 +9,13 @@
 
 import { cx } from '@emotion/css';
 import { RecursionField, observer, useFieldSchema } from '@formily/react';
-import { Space, SpaceProps } from 'antd';
+import { Space, SpaceProps, theme } from 'antd';
 import React, { CSSProperties, useContext } from 'react';
 import { createPortal } from 'react-dom';
+import { useSchemaInitializerRender } from '../../../application';
+import { withDynamicSchemaProps } from '../../../hoc/withDynamicSchemaProps';
 import { DndContext } from '../../common';
 import { useDesignable, useProps } from '../../hooks';
-import { useSchemaInitializerRender } from '../../../application';
-import { withDynamicSchemaProps } from '../../../application/hoc/withDynamicSchemaProps';
 
 export interface ActionBarProps {
   layout?: 'one-column' | 'two-columns';
@@ -60,7 +60,7 @@ const Portal: React.FC = (props) => {
 export const ActionBar = withDynamicSchemaProps(
   observer((props: any) => {
     const { forceProps = {} } = useActionBarContext();
-
+    const { token } = theme.useToken();
     // 新版 UISchema（1.0 之后）中已经废弃了 useProps，这里之所以继续保留是为了兼容旧版的 UISchema
     const { layout = 'two-columns', style, spaceProps, ...others } = { ...useProps(props), ...forceProps } as any;
 
@@ -73,7 +73,7 @@ export const ActionBar = withDynamicSchemaProps(
         <Portal>
           <DndContext>
             <div
-              style={{ display: 'flex', alignItems: 'center', gap: 8, ...style }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, ...style, marginTop: 0 }}
               {...others}
               className={cx(others.className, 'nb-action-bar')}
             >

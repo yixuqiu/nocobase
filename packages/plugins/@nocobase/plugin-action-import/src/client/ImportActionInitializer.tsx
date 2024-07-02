@@ -8,21 +8,20 @@
  */
 
 import type { ISchema } from '@formily/react';
-import { Schema, useFieldSchema } from '@formily/react';
+import { Schema } from '@formily/react';
 import { merge } from '@formily/shared';
 import {
-  SchemaInitializerSwitch,
   css,
+  SchemaInitializerItem,
   useCollection_deprecated,
-  useDesignable,
   useSchemaInitializer,
   useSchemaInitializerItem,
 } from '@nocobase/client';
+import { Alert } from 'antd';
 import React from 'react';
 import { NAMESPACE } from './constants';
-import { useFields } from './useFields';
-import { Alert } from 'antd';
 import { useImportTranslation } from './locale';
+import { useFields } from './useFields';
 
 const findSchema = (schema: Schema, key: string, action: string) => {
   return schema.reduceProperties((buf, s) => {
@@ -36,21 +35,6 @@ const findSchema = (schema: Schema, key: string, action: string) => {
     return buf;
   });
 };
-const removeSchema = (schema, cb) => {
-  return cb(schema);
-};
-export const useCurrentSchema = (action: string, key: string, find = findSchema, rm = removeSchema) => {
-  const fieldSchema = useFieldSchema();
-  const { remove } = useDesignable();
-  const schema = find(fieldSchema, key, action);
-  return {
-    schema,
-    exists: !!schema,
-    remove() {
-      schema && rm(schema, remove);
-    },
-  };
-};
 
 const initImportSettings = (fields) => {
   const importColumns = fields?.filter((f) => !f.children).map((f) => ({ dataIndex: [f.name] }));
@@ -59,13 +43,17 @@ const initImportSettings = (fields) => {
 
 export const ImportWarning = () => {
   const { t } = useImportTranslation();
-  return <Alert type="warning" style={{ marginBottom: '10px' }} message={t('Import warning')} />;
+  return <Alert type="warning" style={{ marginBottom: '10px' }} message={t('Import warnings', { limit: 2000 })} />;
+};
+
+export const DownloadTips = () => {
+  const { t } = useImportTranslation();
+  return <Alert type="info" style={{ marginBottom: '10px', whiteSpace: 'pre-line' }} message={t('Download tips')} />;
 };
 
 export const ImportActionInitializer = () => {
   const itemConfig = useSchemaInitializerItem();
   const { insert } = useSchemaInitializer();
-  const { exists, remove } = useCurrentSchema('importXlsx', 'x-action', itemConfig.find, itemConfig.remove);
   const { name } = useCollection_deprecated();
   const fields = useFields(name);
   const schema: ISchema = {
@@ -113,18 +101,7 @@ export const ImportActionInitializer = () => {
                 properties: {
                   tip: {
                     type: 'void',
-                    'x-component': 'Markdown.Void',
-                    'x-editable': false,
-                    'x-component-props': {
-                      style: {
-                        padding: `var(--paddingContentVerticalSM)`,
-                        backgroundColor: `var(--colorInfoBg)`,
-                        border: `1px solid var(--colorInfoBorder)`,
-                        color: `var(--colorText)`,
-                        marginBottom: `var(--marginSM)`,
-                      },
-                      content: `{{ t("Download tip", {ns: "${NAMESPACE}" }) }}`,
-                    },
+                    'x-component': 'DownloadTips',
                   },
                   downloadAction: {
                     type: 'void',
@@ -196,15 +173,11 @@ export const ImportActionInitializer = () => {
       },
     },
   };
+
   return (
-    <SchemaInitializerSwitch
-      {...itemConfig}
-      checked={exists}
+    <SchemaInitializerItem
       title={itemConfig.title}
       onClick={() => {
-        if (exists) {
-          return remove();
-        }
         schema['x-action-settings']['importSettings'] = initImportSettings(fields);
         const s = merge(schema || {}, itemConfig.schema || {});
         itemConfig?.schemaInitialize?.(s);

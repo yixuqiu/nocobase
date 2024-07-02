@@ -11,21 +11,22 @@ import { ArrayItems } from '@formily/antd-v5';
 import { ISchema, useField, useFieldSchema } from '@formily/react';
 import { useTranslation } from 'react-i18next';
 import { SchemaSettings } from '../../../application/schema-settings';
-import { useFormBlockContext } from '../../../block-provider';
 import { useDetailsBlockContext } from '../../../block-provider/DetailsBlockProvider';
+import { useFormBlockContext } from '../../../block-provider/FormBlockProvider';
 import { useCollection_deprecated } from '../../../collection-manager';
 import { useSortFields } from '../../../collection-manager/action-hooks';
+import { setDataLoadingModeSettingsItem } from '../../../modules/blocks/data-blocks/details-multi/setDataLoadingModeSettingsItem';
 import {
-  SchemaSettingsBlockTitleItem,
   SchemaSettingsDataTemplates,
   SchemaSettingsFormItemTemplate,
   SchemaSettingsLinkageRules,
-  SchemaSettingsTemplate,
 } from '../../../schema-settings/SchemaSettings';
+import { SchemaSettingsBlockHeightItem } from '../../../schema-settings/SchemaSettingsBlockHeightItem';
+import { SchemaSettingsBlockTitleItem } from '../../../schema-settings/SchemaSettingsBlockTitleItem';
 import { SchemaSettingsDataScope } from '../../../schema-settings/SchemaSettingsDataScope';
+import { SchemaSettingsTemplate } from '../../../schema-settings/SchemaSettingsTemplate';
 import { useDesignable } from '../../hooks';
 import { removeNullCondition } from '../filter';
-import { setDataLoadingModeSettingsItem } from '../../../modules/blocks/data-blocks/details-multi/setDataLoadingModeSettingsItem';
 
 /**
  * @deprecated
@@ -36,6 +37,10 @@ export const formSettings = new SchemaSettings({
     {
       name: 'title',
       Component: SchemaSettingsBlockTitleItem,
+    },
+    {
+      name: 'setTheBlockHeight',
+      Component: SchemaSettingsBlockHeightItem,
     },
     {
       name: 'linkageRules',
@@ -160,6 +165,10 @@ export const formDetailsSettings = new SchemaSettings({
     {
       name: 'title',
       Component: SchemaSettingsBlockTitleItem,
+    },
+    {
+      name: 'setTheBlockHeight',
+      Component: SchemaSettingsBlockHeightItem,
     },
     {
       name: 'linkageRules',

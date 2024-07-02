@@ -1,12 +1,3 @@
-/**
- * This file is part of the NocoBase (R) project.
- * Copyright (c) 2020-2024 NocoBase Co., Ltd.
- * Authors: NocoBase Team.
- *
- * This project is dual-licensed under AGPL-3.0 and NocoBase Commercial License.
- * For more information, please refer to: https://www.nocobase.com/agreement.
- */
-
 import { mockAPIClient } from '../../../../testUtils';
 
 const sleep = (value: number) => new Promise((resolve) => setTimeout(resolve, value));
@@ -38,6 +29,27 @@ mockRequest.onPost('/attachments:create').reply(async (config) => {
         created_at: '2022-01-21T07:21:21.084Z',
         created_by_id: null,
         updated_by_id: null,
+      },
+    },
+  ];
+});
+
+mockRequest.onGet('/storages:getRules/').reply(async (config) => {
+  return [
+    200,
+    {
+      data: {},
+    },
+  ];
+});
+
+mockRequest.onGet('/storages:getRules/limited').reply(async (config) => {
+  return [
+    200,
+    {
+      data: {
+        size: 1024,
+        mimetype: 'text/plain',
       },
     },
   ];

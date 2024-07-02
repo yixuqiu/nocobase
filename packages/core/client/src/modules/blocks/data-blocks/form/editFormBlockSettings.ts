@@ -9,14 +9,15 @@
 
 import { useFieldSchema } from '@formily/react';
 import { SchemaSettings } from '../../../../application/schema-settings/SchemaSettings';
-import { useFormBlockContext } from '../../../../block-provider';
+import { useFormBlockContext } from '../../../../block-provider/FormBlockProvider';
 import { useCollection_deprecated } from '../../../../collection-manager';
 import {
-  SchemaSettingsBlockTitleItem,
   SchemaSettingsDataTemplates,
   SchemaSettingsFormItemTemplate,
   SchemaSettingsLinkageRules,
 } from '../../../../schema-settings';
+import { SchemaSettingsBlockHeightItem } from '../../../../schema-settings/SchemaSettingsBlockHeightItem';
+import { SchemaSettingsBlockTitleItem } from '../../../../schema-settings/SchemaSettingsBlockTitleItem';
 
 export const editFormBlockSettings = new SchemaSettings({
   name: 'blockSettings:editForm',
@@ -24,6 +25,10 @@ export const editFormBlockSettings = new SchemaSettings({
     {
       name: 'title',
       Component: SchemaSettingsBlockTitleItem,
+    },
+    {
+      name: 'setTheBlockHeight',
+      Component: SchemaSettingsBlockHeightItem,
     },
     {
       name: 'linkageRules',

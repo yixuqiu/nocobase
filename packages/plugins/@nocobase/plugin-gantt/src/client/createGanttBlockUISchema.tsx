@@ -11,15 +11,16 @@ import { ISchema } from '@formily/react';
 import { uid } from '@formily/shared';
 
 export const createGanttBlockUISchema = (options: {
-  collectionName: string;
   fieldNames: object;
   dataSource: string;
+  association?: string;
+  collectionName?: string;
 }): ISchema => {
-  const { collectionName, fieldNames, dataSource } = options;
+  const { collectionName, fieldNames, dataSource, association } = options;
 
-  return {
+  const schema = {
     type: 'void',
-    'x-acl-action': `${collectionName}:list`,
+    'x-acl-action': `${association || collectionName}:list`,
     'x-decorator': 'GanttBlockProvider',
     'x-decorator-props': {
       collection: collectionName,
@@ -78,8 +79,12 @@ export const createGanttBlockUISchema = (options: {
                 'x-action-column': 'actions',
                 'x-decorator': 'TableV2.Column.ActionBar',
                 'x-component': 'TableV2.Column',
-                'x-designer': 'TableV2.ActionColumnDesigner',
+                'x-toolbar': 'TableColumnSchemaToolbar',
                 'x-initializer': 'table:configureItemActions',
+                'x-settings': 'fieldSettings:TableColumn',
+                'x-toolbar-props': {
+                  initializer: 'table:configureItemActions',
+                },
                 properties: {
                   actions: {
                     type: 'void',
@@ -135,4 +140,9 @@ export const createGanttBlockUISchema = (options: {
       },
     },
   };
+
+  if (association) {
+    schema['x-decorator-props']['association'] = association;
+  }
+  return schema;
 };

@@ -12,11 +12,10 @@ import { useTranslation } from 'react-i18next';
 import { SchemaSettings } from '../../../../application/schema-settings/SchemaSettings';
 import { useCollection_deprecated } from '../../../../collection-manager';
 import { FilterBlockType } from '../../../../filter-provider';
-import {
-  SchemaSettingsBlockTitleItem,
-  SchemaSettingsConnectDataBlocks,
-  SchemaSettingsTemplate,
-} from '../../../../schema-settings';
+import { SchemaSettingsBlockTitleItem } from '../../../../schema-settings/SchemaSettingsBlockTitleItem';
+import { SchemaSettingsConnectDataBlocks } from '../../../../schema-settings/SchemaSettingsConnectDataBlocks';
+import { SchemaSettingsTemplate } from '../../../../schema-settings/SchemaSettingsTemplate';
+import { SchemaSettingsBlockHeightItem } from '../../../../schema-settings/SchemaSettingsBlockHeightItem';
 
 export const filterCollapseBlockSettings = new SchemaSettings({
   name: 'blockSettings:filterCollapse',
@@ -24,6 +23,10 @@ export const filterCollapseBlockSettings = new SchemaSettings({
     {
       name: 'EditBlockTitle',
       Component: SchemaSettingsBlockTitleItem,
+    },
+    {
+      name: 'setTheBlockHeight',
+      Component: SchemaSettingsBlockHeightItem,
     },
     {
       name: 'ConvertReferenceToDuplicate',

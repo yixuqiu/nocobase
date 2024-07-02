@@ -11,8 +11,9 @@ import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { RecursionField, Schema, observer, useFieldSchema } from '@formily/react';
 import {
   ActionContextProvider,
-  DeclareVariable,
   RecordProvider,
+  VariablePopupRecordProvider,
+  getLabelFormatValue,
   useCollection,
   useCollectionParentRecordData,
   useProps,
@@ -29,6 +30,7 @@ import { i18nt, useTranslation } from '../../locale';
 import Header from './components/Header';
 import { CalendarToolbarContext } from './context';
 import GlobalStyle from './global.style';
+import { useCalenderHeight } from './hook';
 import useStyle from './style';
 import type { ToolbarProps } from './types';
 import { formatDate } from './utils';
@@ -61,6 +63,8 @@ function Toolbar(props: ToolbarProps) {
 
 const useEvents = (dataSource: any, fieldNames: any, date: Date, view: (typeof Weeks)[number]) => {
   const { t } = useTranslation();
+  const { fields } = useCollection();
+  const labelUiSchema = fields.find((v) => v.name === fieldNames?.title)?.uiSchema;
   return useMemo(() => {
     if (!Array.isArray(dataSource)) return [];
     const events = [];
@@ -104,10 +108,10 @@ const useEvents = (dataSource: any, fieldNames: any, date: Date, view: (typeof W
         });
 
         if (res) return out;
-
+        const title = getLabelFormatValue(labelUiSchema, get(item, fieldNames.title), true);
         const event = {
           id: get(item, fieldNames.id || 'id'),
-          title: get(item, fieldNames.title) || t('Untitle'),
+          title: title || t('Untitle'),
           start: eventStart.toDate(),
           end: eventStart.add(intervalTime, 'millisecond').toDate(),
         };
@@ -182,14 +186,9 @@ const CalendarRecordViewer = (props) => {
       <DeleteEventContext.Provider value={{ close }}>
         <ActionContextProvider value={{ visible, setVisible }}>
           <RecordProvider record={record} parent={parentRecordData}>
-            <DeclareVariable
-              name="$nPopupRecord"
-              title={t('Current popup record')}
-              value={record}
-              collection={collection}
-            >
+            <VariablePopupRecordProvider recordData={record} collection={collection}>
               <RecursionField schema={eventSchema} name={eventSchema.name} />
-            </DeclareVariable>
+            </VariablePopupRecordProvider>
           </RecordProvider>
         </ActionContextProvider>
       </DeleteEventContext.Provider>
@@ -201,8 +200,8 @@ export const Calendar: any = withDynamicSchemaProps(
   observer(
     (props: any) => {
       // 新版 UISchema（1.0 之后）中已经废弃了 useProps，这里之所以继续保留是为了兼容旧版的 UISchema
-      const { dataSource, fieldNames, showLunar, fixedBlock } = useProps(props);
-
+      const { dataSource, fieldNames, showLunar } = useProps(props);
+      const height = useCalenderHeight();
       const [date, setDate] = useState<Date>(new Date());
       const [view, setView] = useState<View>('month');
       const events = useEvents(dataSource, fieldNames, date, view);
@@ -247,7 +246,7 @@ export const Calendar: any = withDynamicSchemaProps(
         showMore: (count) => i18nt('{{count}} more items', { count }),
       };
       return wrapSSR(
-        <div className={`${hashId} ${containerClassName}`} style={{ height: fixedBlock ? '100%' : 700 }}>
+        <div className={`${hashId} ${containerClassName}`} style={{ height: height || 700 }}>
           <GlobalStyle />
           <CalendarRecordViewer visible={visible} setVisible={setVisible} record={record} />
           <BigCalendar

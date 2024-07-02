@@ -452,7 +452,10 @@
   "Current user": "Текущий пользователь",
   "Current role": "Текущая роль",
   "Current record": "Текущая запись",
+  "Current collection": "Текущая коллекция",
+  "Other collections": "Другие коллекции",
   "Current popup record": "Текущая запись всплывающего окна",
+  "Parent popup record": "Родительская запись всплывающего окна",
   "Associated records": "Связанные записи",
   "Parent record": "Родительская запись",
   "Popup close method": "Метод закрытия всплывающего окна",
@@ -570,5 +573,8 @@
   "Home page": "Домашняя страница",
   "Handbook": "Руководство пользователя",
   "License": "Лицензия",
-  "This variable has been deprecated and can be replaced with \"Current form\"": "Переменная устарела; \"Текущая форма\" может быть использована в качестве замены"
+  "This variable has been deprecated and can be replaced with \"Current form\"": "Переменная устарела; \"Текущая форма\" может быть использована в качестве замены",
+  "The value of this variable is derived from the query string of the page URL. This variable can only be used normally when the page has a query string.": "Значение этой переменной происходит из строки запроса URL страницы. Эта переменная может использоваться только в том случае, если у страницы есть строка запроса.",
+  "URL search params": "Параметры поиска URL",
+  "Expand All": "Развернуть все"
 }
